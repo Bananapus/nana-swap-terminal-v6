@@ -2,12 +2,13 @@
 pragma solidity ^0.8.17;
 
 import "../helper/UnitFixture.sol";
-import {JBMetadataResolver} from "@bananapus/core-v5/src/libraries/JBMetadataResolver.sol";
+import {JBMetadataResolver} from "@bananapus/core-v6/src/libraries/JBMetadataResolver.sol";
 import {
     IUniswapV3PoolActions,
     IUniswapV3PoolImmutables,
     IUniswapV3PoolDerivedState
 } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
+import {JBSwapLib} from "src/libraries/JBSwapLib.sol";
 
 contract JBSwapTerminaladdToBalanceOf is UnitFixture {
     address caller;
@@ -87,7 +88,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     address(mockWETH) < tokenOut,
                     // it should use msg value as amountIn
                     int256(msgValue),
-                    address(mockWETH) < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(msgValue, amountOut, address(mockWETH) < tokenOut),
                     // it should use weth as tokenIn
                     // it should set inIsNativeToken to true
                     abi.encode(projectId, tokenIn)
@@ -157,7 +158,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     tokenIn < tokenOut,
                     // it should use amountIn as amount in
                     int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(amountIn, amountOut, tokenIn < tokenOut),
                     // it should use tokenIn as tokenIn
                     abi.encode(projectId, tokenIn)
                 )
@@ -244,13 +245,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         });
     }
 
-    function test_WhenTokenInUsesAnErc20Approval(
-        uint256 amountIn,
-        uint256 amountOut
-    )
-        public
-        whenTokenInIsAnErc20Token
-    {
+    function test_WhenTokenInUsesAnErc20Approval(uint256 amountIn, uint256 amountOut) public whenTokenInIsAnErc20Token {
         // it should use the token transferFrom
         test_WhenTokenInIsAnErc20Token(amountIn, amountOut);
     }
@@ -293,10 +288,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                 caller,
                 IAllowanceTransfer.PermitSingle({
                     details: IAllowanceTransfer.PermitDetails({
-                        token: tokenIn,
-                        amount: uint160(amountIn),
-                        expiration: 0,
-                        nonce: 0
+                        token: tokenIn, amount: uint160(amountIn), expiration: 0, nonce: 0
                     }),
                     spender: address(swapTerminal),
                     sigDeadline: 0
@@ -321,7 +313,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         // no allowance granted outside of permit2
         mockExpectCall(tokenIn, abi.encodeCall(IERC20.allowance, (caller, address(swapTerminal))), abi.encode(0));
 
-        mockExpectCall(tokenIn, abi.encodeCall(IERC20.balanceOf, (address(swapTerminal))), abi.encode(amountIn));
+        vm.mockCall(tokenIn, abi.encodeCall(IERC20.balanceOf, (address(swapTerminal))), abi.encode(amountIn));
 
         // Mock the swap - this is where we make most of the tests
         mockExpectCall(
@@ -333,7 +325,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     tokenIn < tokenOut,
                     // it should use amountIn as amount in
                     int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(amountIn, amountOut, tokenIn < tokenOut),
                     // it should use tokenIn
                     // it should set inIsNativeToken to false
                     abi.encode(projectId, tokenIn)
@@ -466,7 +458,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     tokenIn < tokenOut,
                     // it should amountIn
                     int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(amountIn, minAmountOut, tokenIn < tokenOut),
                     // it should use tokenIn
                     abi.encode(projectId, tokenIn)
                 )
@@ -553,25 +545,20 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         mockExpectTransferFrom(caller, address(swapTerminal), tokenIn, amountIn);
 
         // Mock the swap - this is where we make most of the tests
-        mockExpectCall(
-            address(pool),
-            abi.encodeCall(
-                IUniswapV3PoolActions.swap,
-                (
-                    address(swapTerminal),
-                    tokenIn < tokenOut,
-                    // it should use amountIn as amount in
-                    int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
-                    // it should use tokenIn
-                    // it should set inIsNativeToken to false
-                    abi.encode(projectId, tokenIn)
-                )
-            ),
-            // 0 for 1 => amount0 is the token in (positive), amount1 is the token out (negative/owed to the pool), and
-            // vice versa
-            tokenIn < tokenOut ? abi.encode(amountIn, -int256(amountOut)) : abi.encode(-int256(amountOut), amountIn)
-        );
+        {
+            // For TWAP-based swaps, the sqrtPriceLimit depends on internal sigmoid computation.
+            // Use partial calldata matching (selector + first 3 params) to avoid replicating that logic.
+            bool zeroForOne = tokenIn < tokenOut;
+            bytes memory partialSwapCalldata = abi.encodeWithSelector(
+                IUniswapV3PoolActions.swap.selector, address(swapTerminal), zeroForOne, int256(amountIn)
+            );
+            vm.mockCall(
+                address(pool),
+                partialSwapCalldata,
+                zeroForOne ? abi.encode(amountIn, -int256(amountOut)) : abi.encode(-int256(amountOut), amountIn)
+            );
+            vm.expectCall(address(pool), partialSwapCalldata);
+        }
 
         mockExpectCall(
             address(mockJBDirectory),
@@ -678,27 +665,22 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         mockExpectTransferFrom(caller, address(swapTerminal), tokenIn, amountIn);
 
         // Mock the swap - this is where we make most of the tests
-        mockExpectCall(
-            address(pool),
-            abi.encodeCall(
-                IUniswapV3PoolActions.swap,
-                (
-                    address(swapTerminal),
-                    tokenIn < tokenOut,
-                    // it should use amountIn as amount in
-                    int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
-                    // it should use tokenIn
-                    // it should set inIsNativeToken to false
-                    abi.encode(projectId, tokenIn)
-                )
-            ),
-            // 0 for 1 => amount0 is the token in (positive), amount1 is the token out (negative/owed to the pool), and
-            // vice versa
-            tokenIn < tokenOut
-                ? abi.encode(amountIn, -int256(minAmountOut - 1))
-                : abi.encode(-int256(minAmountOut - 1), amountIn)
-        );
+        {
+            // For TWAP-based swaps, the sqrtPriceLimit depends on internal sigmoid computation.
+            // Use partial calldata matching (selector + first 3 params) to avoid replicating that logic.
+            bool zeroForOne = tokenIn < tokenOut;
+            bytes memory partialSwapCalldata = abi.encodeWithSelector(
+                IUniswapV3PoolActions.swap.selector, address(swapTerminal), zeroForOne, int256(amountIn)
+            );
+            vm.mockCall(
+                address(pool),
+                partialSwapCalldata,
+                zeroForOne
+                    ? abi.encode(amountIn, -int256(minAmountOut - 1))
+                    : abi.encode(-int256(minAmountOut - 1), amountIn)
+            );
+            vm.expectCall(address(pool), partialSwapCalldata);
+        }
 
         mockExpectCall(
             address(mockJBDirectory),
@@ -796,7 +778,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     tokenIn < address(mockWETH),
                     // it should use amountIn as amount in
                     int256(amountIn),
-                    tokenIn < address(mockWETH) ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(amountIn, amountOut, tokenIn < address(mockWETH)),
                     // it should use tokenIn
                     // it should set inIsNativeToken to false
                     abi.encode(projectId, tokenIn)
@@ -897,7 +879,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
                     tokenIn < tokenOut,
                     // it should use amountIn as amount in
                     int256(amountIn),
-                    tokenIn < tokenOut ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1,
+                    JBSwapLib.sqrtPriceLimitFromAmounts(amountIn, amountOut, tokenIn < tokenOut),
                     // it should use tokenIn as tokenIn
                     abi.encode(projectId, tokenIn)
                 )
@@ -1009,10 +991,7 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         if (tickCumulativesDelta < 0 && (tickCumulativesDelta % int56(uint56(secondsAgo)) != 0)) arithmeticMeanTick--;
 
         uint256 minAmountOut = OracleLibrary.getQuoteAtTick({
-            tick: arithmeticMeanTick,
-            baseAmount: uint128(amountIn),
-            baseToken: tokenIn,
-            quoteToken: tokenOut
+            tick: arithmeticMeanTick, baseAmount: uint128(amountIn), baseToken: tokenIn, quoteToken: tokenOut
         });
 
         return minAmountOut;

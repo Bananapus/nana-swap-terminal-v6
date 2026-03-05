@@ -48,11 +48,11 @@ library SwapTerminalDeploymentLib {
         returns (SwapTerminalDeployment memory deployment)
     {
         deployment.native_registry = IJBSwapTerminalRegistry(
-            payable(_getDeploymentAddress(path, "nana-swap-terminal-v5", network_name, "JBSwapTerminalRegistry"))
+            payable(_getDeploymentAddress(path, "nana-swap-terminal-v6", network_name, "JBSwapTerminalRegistry"))
         );
 
         deployment.usdc_registry = IJBSwapTerminalRegistry(
-            payable(_getDeploymentAddress(path, "nana-swap-terminal-v5", network_name, "JBSwapTerminalUSDCRegistry"))
+            payable(_getDeploymentAddress(path, "nana-swap-terminal-v6", network_name, "JBSwapTerminalUSDCRegistry"))
         );
     }
 

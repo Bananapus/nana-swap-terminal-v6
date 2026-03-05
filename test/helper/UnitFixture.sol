@@ -25,16 +25,22 @@ contract UnitFixture is Test {
     JBSwapTerminalRegistry public swapTerminalRegistry;
 
     function setUp() public virtual {
-        // -- create random addresses --
+        // -- create random addresses and etch code so vm.mockCall works --
         mockJBProjects = IJBProjects(makeAddr("mockJBProjects"));
+        vm.etch(address(mockJBProjects), hex"00");
         mockJBPermissions = IJBPermissions(makeAddr("mockJBPermissions"));
+        vm.etch(address(mockJBPermissions), hex"00");
         mockJBDirectory = IJBDirectory(makeAddr("mockJBDirectory"));
+        vm.etch(address(mockJBDirectory), hex"00");
 
         mockPermit2 = IPermit2(makeAddr("mockPermit2"));
+        vm.etch(address(mockPermit2), hex"00");
         mockWETH = IWETH9(makeAddr("mockWETH"));
+        vm.etch(address(mockWETH), hex"00");
         mockTokenOut = makeAddr("tokenOut");
 
         mockUniswapFactory = IUniswapV3Factory(makeAddr("mockUniswapFactory"));
+        vm.etch(address(mockUniswapFactory), hex"00");
 
         terminalOwner = makeAddr("terminalOwner");
 
@@ -79,7 +85,8 @@ contract UnitFixture is Test {
 
         mockExpectCall(token, abi.encodeCall(IERC20.transferFrom, (from, to, amount)), abi.encode(true));
 
-        mockExpectCall(token, abi.encodeCall(IERC20.balanceOf, to), abi.encode(amount));
+        // Mock balanceOf for the leftover check (no expectation — _acceptFundsFor no longer calls balanceOf)
+        vm.mockCall(token, abi.encodeCall(IERC20.balanceOf, to), abi.encode(amount));
     }
 
     // compare 2 uniswap v3 pool addresses

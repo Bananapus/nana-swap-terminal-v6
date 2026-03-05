@@ -4,16 +4,16 @@ pragma solidity ^0.8.6;
 import "forge-std/Test.sol";
 import {IUniswapV3Pool} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
-import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import {IJBTerminal} from "@bananapus/core-v6/src/interfaces/IJBTerminal.sol";
 import {JBSwapTerminal, IUniswapV3Pool, IPermit2, IWETH9} from "src/JBSwapTerminal.sol";
-import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
-import {JBRulesetMetadata} from "@bananapus/core-v5/src/structs/JBRulesetMetadata.sol";
-import {JBRulesetConfig} from "@bananapus/core-v5/src/structs/JBRulesetConfig.sol";
-import {JBSplitGroup} from "@bananapus/core-v5/src/structs/JBRulesetConfig.sol";
+import {JBConstants} from "@bananapus/core-v6/src/libraries/JBConstants.sol";
+import {JBRulesetMetadata} from "@bananapus/core-v6/src/structs/JBRulesetMetadata.sol";
+import {JBRulesetConfig} from "@bananapus/core-v6/src/structs/JBRulesetConfig.sol";
+import {JBSplitGroup} from "@bananapus/core-v6/src/structs/JBRulesetConfig.sol";
 
-import /* {*} from */ "@bananapus/core-v5/test/helpers/TestBaseWorkflow.sol";
+import /* {*} from */ "@bananapus/core-v6/test/helpers/TestBaseWorkflow.sol";
 
-import "@bananapus/core-v5/script/helpers/CoreDeploymentLib.sol";
+import "@bananapus/core-v6/script/helpers/CoreDeploymentLib.sol";
 import "script/helpers/SwapTerminalDeploymentLib.sol";
 
 contract TestUSDCTerminalSwap_Fork is Test {
@@ -43,12 +43,16 @@ contract TestUSDCTerminalSwap_Fork is Test {
     uint256 projectId;
 
     function setUp() public {
+        if (!vm.envOr("FORK_TESTS", false)) {
+            vm.skip(true);
+            return;
+        }
         // Fork base sepolia.
-        vm.createSelectFork("https://base.gateway.tenderly.co", 33_850_552);
+        vm.createSelectFork(vm.rpcUrl("base"), 33_850_552);
 
         // Fetch the latest core deployments on this network.
         core = CoreDeploymentLib.getDeployment(
-            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core-v5/deployments/"))
+            vm.envOr("NANA_CORE_DEPLOYMENT_PATH", string("node_modules/@bananapus/core-v6/deployments/"))
         );
 
         // Get the permit2 that the multiterminal also makes use of.
@@ -123,13 +127,14 @@ contract TestUSDCTerminalSwap_Fork is Test {
             JBTerminalConfig({terminal: core.terminal, accountingContextsToAccept: _tokensToAccept});
 
         _projectId = uint64(
-            core.controller.launchProjectFor({
-                owner: address(manager),
-                projectUri: "myIPFSHash",
-                rulesetConfigurations: _rulesetConfig,
-                terminalConfigurations: _terminalConfigurations,
-                memo: ""
-            })
+            core.controller
+                .launchProjectFor({
+                    owner: address(manager),
+                    projectUri: "myIPFSHash",
+                    rulesetConfigurations: _rulesetConfig,
+                    terminalConfigurations: _terminalConfigurations,
+                    memo: ""
+                })
         );
     }
 

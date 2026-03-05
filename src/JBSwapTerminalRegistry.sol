@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.23;
 
-import {JBPermissioned} from "@bananapus/core-v5/src/abstract/JBPermissioned.sol";
-import {IJBPermissions} from "@bananapus/core-v5/src/interfaces/IJBPermissions.sol";
-import {IJBProjects} from "@bananapus/core-v5/src/interfaces/IJBProjects.sol";
-import {IJBTerminal} from "@bananapus/core-v5/src/interfaces/IJBTerminal.sol";
+import {JBPermissioned} from "@bananapus/core-v6/src/abstract/JBPermissioned.sol";
+import {IJBPermissions} from "@bananapus/core-v6/src/interfaces/IJBPermissions.sol";
+import {IJBProjects} from "@bananapus/core-v6/src/interfaces/IJBProjects.sol";
+import {IJBTerminal} from "@bananapus/core-v6/src/interfaces/IJBTerminal.sol";
 
-import {JBMetadataResolver} from "@bananapus/core-v5/src/libraries/JBMetadataResolver.sol";
-import {JBConstants} from "@bananapus/core-v5/src/libraries/JBConstants.sol";
-import {JBAccountingContext} from "@bananapus/core-v5/src/structs/JBAccountingContext.sol";
-import {JBSingleAllowance} from "@bananapus/core-v5/src/structs/JBSingleAllowance.sol";
-import {JBPermissionIds} from "@bananapus/permission-ids-v5/src/JBPermissionIds.sol";
+import {JBMetadataResolver} from "@bananapus/core-v6/src/libraries/JBMetadataResolver.sol";
+import {JBConstants} from "@bananapus/core-v6/src/libraries/JBConstants.sol";
+import {JBAccountingContext} from "@bananapus/core-v6/src/structs/JBAccountingContext.sol";
+import {JBSingleAllowance} from "@bananapus/core-v6/src/structs/JBSingleAllowance.sol";
+import {JBPermissionIds} from "@bananapus/permission-ids-v6/src/JBPermissionIds.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {Context} from "@openzeppelin/contracts/utils/Context.sol";
@@ -46,26 +46,30 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     IJBProjects public immutable override PROJECTS;
 
     /// @notice The permit2 utility.
-    IPermit2 public immutable PERMIT2;
+    IPermit2 public immutable override PERMIT2;
 
     //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
 
-    /// @notice The default hook to use.
+    /// @notice The default terminal to use.
     IJBTerminal public override defaultTerminal;
 
     /// @notice Whether the terminal for the given project is locked.
-    /// @custom:param projectId The ID of the project to get the locked hook for.
+    /// @custom:param projectId The ID of the project to get the locked terminal for.
     mapping(uint256 projectId => bool) public override hasLockedTerminal;
 
-    /// @notice The terminal for the given project.
-    /// @custom:param projectId The ID of the project to get the terminal for.
-    mapping(uint256 projectId => IJBTerminal) public override terminalOf;
-
-    /// @notice The address of each project's token.
-    /// @custom:param projectId The ID of the project the token belongs to.
+    /// @notice Whether the given terminal is allowed to be set for projects.
+    /// @custom:param terminal The terminal to check.
     mapping(IJBTerminal terminal => bool) public override isTerminalAllowed;
+
+    //*********************************************************************//
+    // --------------------- internal stored properties ------------------ //
+    //*********************************************************************//
+
+    /// @notice The terminal explicitly set for the given project.
+    /// @custom:param projectId The ID of the project to get the terminal for.
+    mapping(uint256 projectId => IJBTerminal) internal _terminalOf;
 
     //*********************************************************************//
     // ---------------------------- constructor -------------------------- //
@@ -95,6 +99,14 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     // ------------------------- external views -------------------------- //
     //*********************************************************************//
 
+    /// @notice The terminal for the given project, or the default terminal if none is set.
+    /// @param projectId The ID of the project to get the terminal for.
+    /// @return terminal The terminal for the project.
+    function terminalOf(uint256 projectId) external view override returns (IJBTerminal terminal) {
+        terminal = _terminalOf[projectId];
+        if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
+    }
+
     /// @notice Get the accounting context for the specified project ID and token.
     /// @dev Accounting contexts are set up in `addDefaultPool(...)`.
     /// @param projectId The ID of the project to get the accounting context for.
@@ -109,14 +121,12 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         override
         returns (JBAccountingContext memory context)
     {
-        // Get the terminal for the project.
-        IJBTerminal terminal = terminalOf[projectId];
-
-        // If the terminal is not set, use the default terminal.
+        // Get the terminal for the project (falls back to default).
+        IJBTerminal terminal = _terminalOf[projectId];
         if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
 
         // Get the accounting context for the token.
-        return terminal.accountingContextForTokenOf(projectId, token);
+        return terminal.accountingContextForTokenOf({projectId: projectId, token: token});
     }
 
     /// @notice Return all the accounting contexts for a specified project ID.
@@ -130,10 +140,8 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         override
         returns (JBAccountingContext[] memory contexts)
     {
-        // Get the terminal for the project.
-        IJBTerminal terminal = terminalOf[projectId];
-
-        // If the terminal is not set, use the default terminal.
+        // Get the terminal for the project (falls back to default).
+        IJBTerminal terminal = _terminalOf[projectId];
         if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
 
         // Get the accounting context for the token.
@@ -149,6 +157,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     )
         external
         view
+        override
         returns (uint256)
     {}
 
@@ -218,17 +227,15 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         payable
         override
     {
-        // Get a reference to the project's primary terminal for the destination token that is being swapped into.
-        IJBTerminal terminal = terminalOf[projectId];
-
-        // If the terminal is not set, use the default terminal.
+        // Get the terminal for the project (falls back to default).
+        IJBTerminal terminal = _terminalOf[projectId];
         if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
 
         // Accept the funds for the token.
         amount = _acceptFundsFor({token: token, amount: amount, metadata: metadata});
 
         // Trigger any pre-transfer logic.
-        uint256 payValue = _beforeTransferFor(address(terminal), token, amount);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: token, amount: amount});
 
         // Add to the primary terminal's balance in the resulting token, forwarding along the beneficiary and other
         // arguments.
@@ -242,8 +249,8 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         });
     }
 
-    /// @notice Allow a hook.
-    /// @dev Only the owner can allow a hook.
+    /// @notice Allow a terminal.
+    /// @dev Only the owner can allow a terminal.
     /// @param terminal The terminal to allow.
     function allowTerminal(IJBTerminal terminal) external onlyOwner {
         // Allow the terminal.
@@ -253,33 +260,39 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     }
 
     /// @notice Disallow a terminal.
-    /// @dev Only the owner can disallow a hook.
+    /// @dev Only the owner can disallow a terminal.
     /// @param terminal The terminal to disallow.
     function disallowTerminal(IJBTerminal terminal) external onlyOwner {
-        // Disallow the hook.
+        // Disallow the terminal.
         isTerminalAllowed[terminal] = false;
+
+        // L-26: Clear default terminal if it matches the terminal being disallowed.
+        if (defaultTerminal == terminal) defaultTerminal = IJBTerminal(address(0));
 
         emit JBSwapTerminalRegistry_DisallowTerminal(terminal);
     }
 
     /// @notice Lock a terminal for a project.
-    /// @dev Only the project's owner or an address with the `JBPermissionIds.ADD_SWAP_TERMINAL_POOL` permission from
+    /// @dev Only the project's owner or an address with the `JBPermissionIds.SET_SWAP_TERMINAL` permission from
     /// the
     /// owner can lock a terminal for a project.
     /// @param projectId The ID of the project to lock the terminal for.
     function lockTerminalFor(uint256 projectId) external {
         // Enforce permissions.
         _requirePermissionFrom({
-            account: PROJECTS.ownerOf(projectId),
-            projectId: projectId,
-            permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_POOL
+            account: PROJECTS.ownerOf(projectId), projectId: projectId, permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
+
+        // L-27: Require a non-zero terminal before locking. Either the project has one set, or the default exists.
+        IJBTerminal terminal = _terminalOf[projectId];
+        if (terminal == IJBTerminal(address(0))) {
+            terminal = defaultTerminal;
+            if (terminal == IJBTerminal(address(0))) revert JBSwapTerminalRegistry_TerminalNotSet(projectId);
+            _terminalOf[projectId] = terminal;
+        }
 
         // Set the terminal to locked.
         hasLockedTerminal[projectId] = true;
-
-        // If the terminal is not set, lock in the default terminal.
-        if (terminalOf[projectId] == IJBTerminal(address(0))) terminalOf[projectId] = defaultTerminal;
 
         emit JBSwapTerminalRegistry_LockTerminal(projectId);
     }
@@ -326,10 +339,8 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         override
         returns (uint256)
     {
-        // Get the terminal for the project.
-        IJBTerminal terminal = terminalOf[projectId];
-
-        // If the terminal is not set, use the default terminal.
+        // Get the terminal for the project (falls back to default).
+        IJBTerminal terminal = _terminalOf[projectId];
         if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
 
         // Accept the funds for the token.
@@ -337,7 +348,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
 
         // Trigger any pre-transfer logic.
         // Keep a reference to the amount that'll be paid as a `msg.value`.
-        uint256 payValue = _beforeTransferFor(address(terminal), token, amount);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: token, amount: amount});
 
         // Forward the payment to the terminal.
         return terminal.pay{value: payValue}({
@@ -352,7 +363,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     }
 
     /// @notice Set the default terminal.
-    /// @dev Only the owner can set the default hook.
+    /// @dev Only the owner can set the default terminal.
     /// @param terminal The terminal to set as the default.
     function setDefaultTerminal(IJBTerminal terminal) external onlyOwner {
         // Set the default terminal.
@@ -365,26 +376,24 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     }
 
     /// @notice Set the terminal for a project.
-    /// @dev Only the project's owner or an address with the `JBPermissionIds.ADD_SWAP_TERMINAL_POOL` permission from
+    /// @dev Only the project's owner or an address with the `JBPermissionIds.SET_SWAP_TERMINAL` permission from
     /// the
     /// owner can set the terminal for a project.
     /// @param projectId The ID of the project to set the terminal for.
     /// @param terminal The terminal to set for the project.
     function setTerminalFor(uint256 projectId, IJBTerminal terminal) external {
-        // Make sure the hook is not locked.
+        // Make sure the terminal is not locked.
         if (hasLockedTerminal[projectId]) revert JBSwapTerminalRegistry_TerminalLocked(projectId);
 
         if (!isTerminalAllowed[terminal]) revert JBSwapTerminalRegistry_TerminalNotAllowed(terminal);
 
         // Enforce permissions.
         _requirePermissionFrom({
-            account: PROJECTS.ownerOf(projectId),
-            projectId: projectId,
-            permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_POOL
+            account: PROJECTS.ownerOf(projectId), projectId: projectId, permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
 
         // Set the terminal.
-        terminalOf[projectId] = terminal;
+        _terminalOf[projectId] = terminal;
 
         emit JBSwapTerminalRegistry_SetTerminal(projectId, terminal);
     }
@@ -407,7 +416,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
 
         // Unpack the `JBSingleAllowance` to use given by the frontend.
         (bool exists, bytes memory parsedMetadata) =
-            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("permit2"), metadata);
+            JBMetadataResolver.getDataFor({id: JBMetadataResolver.getId("permit2"), metadata: metadata});
 
         // If the metadata contained permit data, use it to set the allowance.
         if (exists) {
@@ -422,10 +431,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
             // Keep a reference to the permit rules.
             IAllowanceTransfer.PermitSingle memory permitSingle = IAllowanceTransfer.PermitSingle({
                 details: IAllowanceTransfer.PermitDetails({
-                    token: token,
-                    amount: allowance.amount,
-                    expiration: allowance.expiration,
-                    nonce: allowance.nonce
+                    token: token, amount: allowance.amount, expiration: allowance.expiration, nonce: allowance.nonce
                 }),
                 spender: address(this),
                 sigDeadline: allowance.sigDeadline
@@ -438,8 +444,8 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         // Transfer the tokens from the `_msgSender()` to this terminal.
         _transferFrom({from: _msgSender(), to: payable(address(this)), token: token, amount: amount});
 
-        // The amount actually received.
-        return IERC20(token).balanceOf(address(this));
+        // Return the amount transferred. Fee-on-transfer tokens are not supported by the swap terminal.
+        return amount;
     }
 
     /// @notice Logic to be triggered before transferring tokens from this terminal.
@@ -474,7 +480,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         }
 
         // If there's sufficient approval, transfer normally.
-        if (IERC20(token).allowance(address(from), address(this)) >= amount) {
+        if (IERC20(token).allowance({owner: address(from), spender: address(this)}) >= amount) {
             return IERC20(token).safeTransferFrom(from, to, amount);
         }
 

@@ -1,31 +1,26 @@
 {
-  "name": "@bananapus/swap-terminal-v5",
-  "version": "0.0.4",
+  "name": "@bananapus/swap-terminal-v6",
+  "version": "0.0.1",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Bananapus/nana-swap-terminal-v5"
+    "url": "git+https://github.com/Bananapus/nana-swap-terminal-v6"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
+    "postinstall": "cd node_modules/@bananapus/core-v6/test/helpers && sed -i.bak 's|from \"src/|from \"../../src/|g' JBTest.sol && sed -i.bak 's|import \"lib/forge-std/src/Test.sol\"|import \"forge-std/Test.sol\"|' JBTest.sol && rm -f JBTest.sol.bak",
     "test": "forge test",
     "test:fork": "FOUNDRY_PROFILE=CI forge test",
     "coverage": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
     "deploy:mainnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks mainnets",
     "deploy:testnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
-    "deploy:mainnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks mainnets",
-    "deploy:testnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks testnets",
-    "deploy:mainnets:5_1": "source ./.env && npx sphinx propose ./script/DeployAndConfigure5_1.s.sol --networks mainnets",
-    "deploy:testnets:5_1": "source ./.env && npx sphinx propose ./script/DeployAndConfigure5_1.s.sol --networks testnets",
-    "configure:mainnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks mainnets",
-    "configure:testnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks testnets",
-    "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-swap-terminal-v5'"
+    "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-swap-terminal-v6'"
   },
   "dependencies": {
-    "@bananapus/core-v5": "^0.0.4",
-    "@bananapus/permission-ids-v5": "^0.0.2",
+    "@bananapus/core-v6": "^0.0.1",
+    "@bananapus/permission-ids-v6": "^0.0.1",
     "@exhausted-pigeon/uniswap-v3-foundry-pool": "^1.0.9",
     "@exhausted-pigeon/uniswap-v3-foundry-quote": "^1.0.0",
     "@openzeppelin/contracts": "^5.2.0",
