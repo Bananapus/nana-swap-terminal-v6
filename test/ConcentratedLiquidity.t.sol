@@ -155,9 +155,7 @@ contract ConcentratedLiquidity is PoolTestHelper {
         );
 
         // 6. Mock projects.ownerOf.
-        vm.mockCall(
-            address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner)
-        );
+        vm.mockCall(address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner));
 
         // 7. Configure the default pool for this project.
         vm.prank(projectOwner);
@@ -267,7 +265,7 @@ contract ConcentratedLiquidity is PoolTestHelper {
 
         // A large swap that will cross the tick boundary.
         // In a [-600, 600] range with 10K each side, swapping ~1K should push price significantly.
-        uint256 amountIn = 1_000e18;
+        uint256 amountIn = 1000e18;
 
         // Get the actual quote (which will reflect the tick crossing).
         uint256 quotedOutput = _quoteAmountOut(amountIn);
@@ -286,7 +284,7 @@ contract ConcentratedLiquidity is PoolTestHelper {
     ///         Expect partial fill (only the liquidity within range is available).
     function test_swapExitingLiquidity() public {
         // Very narrow range: [-60, 60] (~0.6% around current price).
-        _seedConcentrated(-60, 60, 1_000e18, 1_000e18);
+        _seedConcentrated(-60, 60, 1000e18, 1000e18);
 
         // Large swap that will exhaust the narrow range liquidity.
         uint256 amountIn = 500e18;

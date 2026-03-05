@@ -166,9 +166,7 @@ contract AMMIntegration is PoolTestHelper {
         );
 
         // 7. Mock projects.ownerOf to return projectOwner.
-        vm.mockCall(
-            address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner)
-        );
+        vm.mockCall(address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner));
 
         // 8. Configure the default pool for this project.
         vm.prank(projectOwner);
@@ -222,7 +220,7 @@ contract AMMIntegration is PoolTestHelper {
     /// @notice Calling `pay()` with tokenA should execute a real V3 swap and forward
     ///         tokenB to the next terminal via `pay()`.
     function test_payExecutesRealSwap() public {
-        uint256 amountIn = 1_000e18;
+        uint256 amountIn = 1000e18;
 
         // Get an accurate quote so the swap will not revert on slippage.
         uint256 expectedOut = _quoteAmountOut(amountIn);
@@ -414,7 +412,7 @@ contract AMMIntegration is PoolTestHelper {
     /// @notice Providing an unrealistically high minAmountOut should cause the swap
     ///         to revert with JBSwapTerminal_SpecifiedSlippageExceeded.
     function test_swapRevertsOnSlippageExceeded() public {
-        uint256 amountIn = 1_000e18;
+        uint256 amountIn = 1000e18;
 
         // Quote the real expected output, then demand 10x that -- impossible.
         uint256 expectedOut = _quoteAmountOut(amountIn);

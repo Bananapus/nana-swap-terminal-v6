@@ -14,8 +14,7 @@ contract JBSwapTerminaluniswapV3SwapCallback is UnitFixture {
         super.setUp();
 
         swapTerminal = JBSwapTerminal(
-            payable(
-                new ForTest_SwapTerminal(
+            payable(new ForTest_SwapTerminal(
                     mockJBProjects,
                     mockJBPermissions,
                     mockJBDirectory,
@@ -24,8 +23,7 @@ contract JBSwapTerminaluniswapV3SwapCallback is UnitFixture {
                     mockWETH,
                     mockTokenOut,
                     mockUniswapFactory
-                )
-            )
+                ))
         );
     }
 

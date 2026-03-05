@@ -114,7 +114,9 @@ contract JBSwapTerminalpay is UnitFixture {
         // it should pass the benefiaciary as beneficiary for the next terminal
         mockExpectCall(
             nextTerminal,
-            abi.encodeCall(IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)),
+            abi.encodeCall(
+                IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)
+            ),
             abi.encode(1337)
         );
 
@@ -199,7 +201,9 @@ contract JBSwapTerminalpay is UnitFixture {
         // Mock the call to the next terminal, using the token out as new token in
         mockExpectCall(
             nextTerminal,
-            abi.encodeCall(IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)),
+            abi.encodeCall(
+                IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)
+            ),
             abi.encode(1337)
         );
 
@@ -267,13 +271,7 @@ contract JBSwapTerminalpay is UnitFixture {
         });
     }
 
-    function test_WhenTokenInUsesAnErc20Approval(
-        uint256 amountIn,
-        uint256 amountOut
-    )
-        public
-        whenTokenInIsAnErc20Token
-    {
+    function test_WhenTokenInUsesAnErc20Approval(uint256 amountIn, uint256 amountOut) public whenTokenInIsAnErc20Token {
         // it should use the token transferFrom
         test_WhenTokenInIsAnErc20Token(amountIn, amountOut);
     }
@@ -319,10 +317,7 @@ contract JBSwapTerminalpay is UnitFixture {
                 caller,
                 IAllowanceTransfer.PermitSingle({
                     details: IAllowanceTransfer.PermitDetails({
-                        token: tokenIn,
-                        amount: uint160(amountIn),
-                        expiration: 0,
-                        nonce: 0
+                        token: tokenIn, amount: uint160(amountIn), expiration: 0, nonce: 0
                     }),
                     spender: address(swapTerminal),
                     sigDeadline: 0
@@ -428,10 +423,7 @@ contract JBSwapTerminalpay is UnitFixture {
                 caller,
                 IAllowanceTransfer.PermitSingle({
                     details: IAllowanceTransfer.PermitDetails({
-                        token: tokenIn,
-                        amount: uint160(amountIn),
-                        expiration: 0,
-                        nonce: 0
+                        token: tokenIn, amount: uint160(amountIn), expiration: 0, nonce: 0
                     }),
                     spender: address(swapTerminalRegistry),
                     sigDeadline: 0
@@ -711,10 +703,7 @@ contract JBSwapTerminalpay is UnitFixture {
         {
             bool zeroForOne = tokenIn < tokenOut;
             bytes memory partialSwapCalldata = abi.encodeWithSelector(
-                IUniswapV3PoolActions.swap.selector,
-                address(swapTerminal),
-                zeroForOne,
-                int256(amountIn)
+                IUniswapV3PoolActions.swap.selector, address(swapTerminal), zeroForOne, int256(amountIn)
             );
             vm.mockCall(
                 address(pool),
@@ -735,7 +724,9 @@ contract JBSwapTerminalpay is UnitFixture {
         // Mock the call to the next terminal, using the token out as new token in
         mockExpectCall(
             nextTerminal,
-            abi.encodeCall(IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)),
+            abi.encodeCall(
+                IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)
+            ),
             abi.encode(1337)
         );
 
@@ -837,10 +828,7 @@ contract JBSwapTerminalpay is UnitFixture {
         {
             bool zeroForOne = tokenIn < tokenOut;
             bytes memory partialSwapCalldata = abi.encodeWithSelector(
-                IUniswapV3PoolActions.swap.selector,
-                address(swapTerminal),
-                zeroForOne,
-                int256(amountIn)
+                IUniswapV3PoolActions.swap.selector, address(swapTerminal), zeroForOne, int256(amountIn)
             );
             vm.mockCall(
                 address(pool),
@@ -973,7 +961,9 @@ contract JBSwapTerminalpay is UnitFixture {
         // Mock the call to the next terminal, using the token out as new token in
         mockExpectCall(
             nextTerminal,
-            abi.encodeCall(IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)),
+            abi.encodeCall(
+                IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)
+            ),
             abi.encode(1337)
         );
 
@@ -1078,7 +1068,9 @@ contract JBSwapTerminalpay is UnitFixture {
         // Mock the call to the next terminal, using the token out as new token in
         mockExpectCall(
             nextTerminal,
-            abi.encodeCall(IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)),
+            abi.encodeCall(
+                IJBTerminal.pay, (projectId, tokenOut, amountOut, beneficiary, amountOut, "", quoteMetadata)
+            ),
             abi.encode(1337)
         );
 
@@ -1246,10 +1238,7 @@ contract JBSwapTerminalpay is UnitFixture {
         if (tickCumulativesDelta < 0 && (tickCumulativesDelta % int56(uint56(secondsAgo)) != 0)) arithmeticMeanTick--;
 
         uint256 minAmountOut = OracleLibrary.getQuoteAtTick({
-            tick: arithmeticMeanTick,
-            baseAmount: uint128(amountIn),
-            baseToken: tokenIn,
-            quoteToken: tokenOut
+            tick: arithmeticMeanTick, baseAmount: uint128(amountIn), baseToken: tokenIn, quoteToken: tokenOut
         });
 
         return minAmountOut;

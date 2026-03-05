@@ -44,16 +44,12 @@ contract Test_SwapTerminalRegistry_Unit is Test {
 
         // Mock PROJECTS.ownerOf to return projectOwner for the test project.
         vm.mockCall(
-            address(projects),
-            abi.encodeWithSelector(IERC721.ownerOf.selector, projectId),
-            abi.encode(projectOwner)
+            address(projects), abi.encodeWithSelector(IERC721.ownerOf.selector, projectId), abi.encode(projectOwner)
         );
 
         // Mock permissions to return true by default (for authorized calls).
         vm.mockCall(
-            address(permissions),
-            abi.encodeWithSelector(IJBPermissions.hasPermission.selector),
-            abi.encode(true)
+            address(permissions), abi.encodeWithSelector(IJBPermissions.hasPermission.selector), abi.encode(true)
         );
     }
 
@@ -159,9 +155,7 @@ contract Test_SwapTerminalRegistry_Unit is Test {
     function test_setTerminalFor_revertsIfNotAllowed() public {
         vm.prank(projectOwner);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                JBSwapTerminalRegistry.JBSwapTerminalRegistry_TerminalNotAllowed.selector, terminalA
-            )
+            abi.encodeWithSelector(JBSwapTerminalRegistry.JBSwapTerminalRegistry_TerminalNotAllowed.selector, terminalA)
         );
         registry.setTerminalFor(projectId, terminalA);
     }
@@ -196,9 +190,7 @@ contract Test_SwapTerminalRegistry_Unit is Test {
         vm.prank(projectOwner);
         registry.lockTerminalFor(projectId);
 
-        assertEq(
-            address(registry.terminalOf(projectId)), address(terminalA), "lockTerminalFor should copy default"
-        );
+        assertEq(address(registry.terminalOf(projectId)), address(terminalA), "lockTerminalFor should copy default");
         assertTrue(registry.hasLockedTerminal(projectId), "should be locked");
     }
 
@@ -233,9 +225,7 @@ contract Test_SwapTerminalRegistry_Unit is Test {
     function test_terminalOf_returnsZeroWhenNoDefaultAndNoProjectTerminal() public view {
         // No default, no project terminal → address(0).
         assertEq(
-            address(registry.terminalOf(projectId)),
-            address(0),
-            "terminalOf should be address(0) with no terminals"
+            address(registry.terminalOf(projectId)), address(0), "terminalOf should be address(0) with no terminals"
         );
     }
 
@@ -263,11 +253,7 @@ contract Test_SwapTerminalRegistry_Unit is Test {
     //*********************************************************************//
 
     function test_supportsInterface() public view {
-        assertTrue(
-            registry.supportsInterface(type(IJBTerminal).interfaceId), "should support IJBTerminal"
-        );
-        assertTrue(
-            registry.supportsInterface(type(IERC165).interfaceId), "should support IERC165"
-        );
+        assertTrue(registry.supportsInterface(type(IJBTerminal).interfaceId), "should support IJBTerminal");
+        assertTrue(registry.supportsInterface(type(IERC165).interfaceId), "should support IERC165");
     }
 }

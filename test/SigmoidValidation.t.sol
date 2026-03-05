@@ -161,9 +161,7 @@ contract SigmoidValidation is PoolTestHelper {
         );
 
         // 7. Mock projects.ownerOf.
-        vm.mockCall(
-            address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner)
-        );
+        vm.mockCall(address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner));
 
         // 8. Configure the default pool for this project.
         vm.prank(projectOwner);
@@ -216,7 +214,7 @@ contract SigmoidValidation is PoolTestHelper {
     /// @notice For 5 amounts: compute sigmoid tolerance, execute real swap, verify actual
     ///         slippage is within the tolerance.
     function test_sigmoidMatchesRealSlippage() public {
-        uint256[5] memory amounts = [uint256(1e18), 10e18, 100e18, 1_000e18, 10_000e18];
+        uint256[5] memory amounts = [uint256(1e18), 10e18, 100e18, 1000e18, 10_000e18];
 
         (uint128 liquidity, uint160 sqrtP) = _getPoolState();
         bool zeroForOne = address(tokenA) < address(tokenB); // tokenA is token0
@@ -246,10 +244,7 @@ contract SigmoidValidation is PoolTestHelper {
             assertGe(
                 toleranceBps,
                 actualSlippageBps,
-                string.concat(
-                    "sigmoid tolerance should >= actual slippage for amount index ",
-                    vm.toString(i)
-                )
+                string.concat("sigmoid tolerance should >= actual slippage for amount index ", vm.toString(i))
             );
 
             // Verify tolerance is reasonable (not 0, not > MAX_SLIPPAGE).
@@ -265,7 +260,7 @@ contract SigmoidValidation is PoolTestHelper {
         uint256 poolFeeBps = uint256(POOL_FEE) / 100;
 
         // Increasing amounts: 0.01, 0.1, 1, 10, 100, 1000, 10000 ETH.
-        uint256[7] memory amounts = [uint256(0.01e18), 0.1e18, 1e18, 10e18, 100e18, 1_000e18, 10_000e18];
+        uint256[7] memory amounts = [uint256(0.01e18), 0.1e18, 1e18, 10e18, 100e18, 1000e18, 10_000e18];
 
         uint256 prevTolerance = 0;
 
@@ -275,9 +270,7 @@ contract SigmoidValidation is PoolTestHelper {
 
             // Tolerance should be monotonically non-decreasing as amount increases.
             assertGe(
-                tolerance,
-                prevTolerance,
-                string.concat("tolerance should be non-decreasing at index ", vm.toString(i))
+                tolerance, prevTolerance, string.concat("tolerance should be non-decreasing at index ", vm.toString(i))
             );
 
             prevTolerance = tolerance;
@@ -333,7 +326,7 @@ contract SigmoidValidation is PoolTestHelper {
 
         // Also verify with non-zero impact — the effect should persist.
         (uint128 liquidity, uint160 sqrtP) = _getPoolState();
-        uint256 impact = JBSwapLib.calculateImpact(1_000e18, liquidity, sqrtP, true);
+        uint256 impact = JBSwapLib.calculateImpact(1000e18, liquidity, sqrtP, true);
         uint256 tolLow = JBSwapLib.getSlippageTolerance(impact, 150);
         uint256 tolHigh = JBSwapLib.getSlippageTolerance(impact, 500);
         assertGt(tolHigh, tolLow, "500 bps fee tolerance should be > 150 bps fee tolerance with same impact");

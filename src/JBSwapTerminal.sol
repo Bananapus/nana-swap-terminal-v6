@@ -581,10 +581,10 @@ contract JBSwapTerminal is
         // Factory stores both directions, future proofing
         if (
             FACTORY.getPool({
-                tokenA: zeroForOne ? normalizedTokenIn : normalizedTokenOut,
-                tokenB: zeroForOne ? normalizedTokenOut : normalizedTokenIn,
-                fee: pool.fee()
-            }) != address(pool)
+                    tokenA: zeroForOne ? normalizedTokenIn : normalizedTokenOut,
+                    tokenB: zeroForOne ? normalizedTokenOut : normalizedTokenIn,
+                    fee: pool.fee()
+                }) != address(pool)
         ) {
             revert JBSwapTerminal_WrongPool(
                 address(pool),
@@ -840,19 +840,16 @@ contract JBSwapTerminal is
             // Keep a reference to the permit rules.
             IAllowanceTransfer.PermitSingle memory permitSingle = IAllowanceTransfer.PermitSingle({
                 details: IAllowanceTransfer.PermitDetails({
-                    token: token,
-                    amount: allowance.amount,
-                    expiration: allowance.expiration,
-                    nonce: allowance.nonce
+                    token: token, amount: allowance.amount, expiration: allowance.expiration, nonce: allowance.nonce
                 }),
                 spender: address(this),
                 sigDeadline: allowance.sigDeadline
             });
 
             try PERMIT2.permit({owner: _msgSender(), permitSingle: permitSingle, signature: allowance.signature}) {}
-                catch (bytes memory reason) {
-                    emit Permit2AllowanceFailed(token, _msgSender(), reason);
-                }
+            catch (bytes memory reason) {
+                emit Permit2AllowanceFailed(token, _msgSender(), reason);
+            }
         }
 
         // Transfer the tokens from the `_msgSender()` to this terminal.
