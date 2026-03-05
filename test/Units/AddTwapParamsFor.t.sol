@@ -57,7 +57,7 @@ contract JBSwapTerminaladdTwapParamsFor is UnitFixture {
         // it should revert
         vm.expectRevert(
             abi.encodeWithSelector(
-                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId + 1, 27
+                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId + 1, 29
             )
         );
         swapTerminal.addTwapParamsFor(projectId + 1, pool, secondsAgo);
@@ -109,7 +109,7 @@ contract JBSwapTerminaladdTwapParamsFor is UnitFixture {
         vm.prank(caller);
         vm.expectRevert(
             abi.encodeWithSelector(
-                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId, 27
+                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId, 29
             )
         );
         swapTerminal.addTwapParamsFor(projectId, pool, secondsAgo);
@@ -169,7 +169,7 @@ contract JBSwapTerminaladdTwapParamsFor is UnitFixture {
         // it should revert
         vm.expectRevert(
             abi.encodeWithSelector(
-                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId, 27
+                JBPermissioned.JBPermissioned_Unauthorized.selector, projectOwner, caller, projectId, 29
             )
         );
         swapTerminal.addTwapParamsFor(projectId, pool, secondsAgo);

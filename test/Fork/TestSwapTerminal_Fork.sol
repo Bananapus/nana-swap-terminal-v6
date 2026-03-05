@@ -422,7 +422,7 @@ contract TestSwapTerminal_Fork is Test {
         // Old deploy is used so we'll just allow this
         vm.expectRevert(
             abi.encodeWithSelector(
-                JBPermissioned.JBPermissioned_Unauthorized.selector, _projectOwner, address(12_345), _projectId, 26
+                JBPermissioned.JBPermissioned_Unauthorized.selector, _projectOwner, address(12_345), _projectId, 28
             )
         );
         vm.prank(address(12_345));
