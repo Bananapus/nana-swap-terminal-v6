@@ -427,7 +427,7 @@ contract JBSwapTerminal is
 
         // Check for a quote passed in by the user/client.
         (bool exists, bytes memory quote) =
-            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("quoteForSwap"), metadata);
+            JBMetadataResolver.getDataFor({id: JBMetadataResolver.getId("quoteForSwap"), metadata: metadata});
 
         // If there's a quote, use it.
         if (exists) {
@@ -459,7 +459,8 @@ contract JBSwapTerminal is
             if (oldestObservation == 0) revert JBSwapTerminal_NoObservationHistory();
 
             //slither-disable-next-line unused-return
-            (arithmeticMeanTick, liquidity) = OracleLibrary.consult(address(pool), uint32(twapWindow));
+            (arithmeticMeanTick, liquidity) =
+                OracleLibrary.consult({pool: address(pool), secondsAgo: uint32(twapWindow)});
 
             // Revert when there's no liquidity — accepting zero output loses the user's funds.
             if (liquidity == 0) revert JBSwapTerminal_NoLiquidity();
@@ -561,7 +562,11 @@ contract JBSwapTerminal is
         // their project.
         projectId == DEFAULT_PROJECT_ID
             ? _checkOwner()
-            : _requirePermissionFrom(PROJECTS.ownerOf(projectId), projectId, JBPermissionIds.ADD_SWAP_TERMINAL_POOL);
+            : _requirePermissionFrom({
+                account: PROJECTS.ownerOf(projectId),
+                projectId: projectId,
+                permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_POOL
+            });
 
         // Keep a reference to the normalized token out, which wraps the native token if needed.
         address normalizedTokenOut = _normalizedTokenOut();
@@ -635,7 +640,7 @@ contract JBSwapTerminal is
         override
     {
         // Get a reference to the project's primary terminal for the destination token that is being swapped into.
-        IJBTerminal terminal = DIRECTORY.primaryTerminalOf(projectId, TOKEN_OUT);
+        IJBTerminal terminal = DIRECTORY.primaryTerminalOf({projectId: projectId, token: TOKEN_OUT});
 
         // Revert if the project does not have a primary terminal for the destination token.
         if (address(terminal) == address(0)) revert JBSwapTerminal_TokenNotAccepted(projectId, TOKEN_OUT);
@@ -649,7 +654,7 @@ contract JBSwapTerminal is
         });
 
         // Trigger any pre-transfer logic.
-        uint256 payValue = _beforeTransferFor(address(terminal), TOKEN_OUT, receivedFromSwap);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: TOKEN_OUT, amount: receivedFromSwap});
 
         // Add to the primary terminal's balance in the resulting token, forwarding along the beneficiary and other
         // arguments.
@@ -673,7 +678,11 @@ contract JBSwapTerminal is
         // params for their projects.
         projectId == DEFAULT_PROJECT_ID
             ? _checkOwner()
-            : _requirePermissionFrom(PROJECTS.ownerOf(projectId), projectId, JBPermissionIds.ADD_SWAP_TERMINAL_TWAP_PARAMS);
+            : _requirePermissionFrom({
+                account: PROJECTS.ownerOf(projectId),
+                projectId: projectId,
+                permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_TWAP_PARAMS
+            });
 
         // Make sure the specified window is within reasonable bounds.
         if (twapWindow < MIN_TWAP_WINDOW || twapWindow > MAX_TWAP_WINDOW) {
@@ -727,7 +736,7 @@ contract JBSwapTerminal is
         returns (uint256)
     {
         // Get a reference to the project's primary terminal for the destination token that is being swapped into.
-        IJBTerminal terminal = DIRECTORY.primaryTerminalOf(projectId, TOKEN_OUT);
+        IJBTerminal terminal = DIRECTORY.primaryTerminalOf({projectId: projectId, token: TOKEN_OUT});
 
         // Revert if the project does not have a primary terminal for the destination token.
         if (address(terminal) == address(0)) revert JBSwapTerminal_TokenNotAccepted(projectId, TOKEN_OUT);
@@ -742,7 +751,7 @@ contract JBSwapTerminal is
 
         // Trigger any pre-transfer logic.
         // Keep a reference to the amount that'll be paid as a `msg.value`.
-        uint256 payValue = _beforeTransferFor(address(terminal), TOKEN_OUT, receivedFromSwap);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: TOKEN_OUT, amount: receivedFromSwap});
 
         // Pay the primary terminal in the resulting token, forwarding along the beneficiary and other arguments.
         return terminal.pay{value: payValue}({
@@ -816,7 +825,7 @@ contract JBSwapTerminal is
 
         // Unpack the `JBSingleAllowance` to use given by the frontend.
         (bool exists, bytes memory parsedMetadata) =
-            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("permit2"), metadata);
+            JBMetadataResolver.getDataFor({id: JBMetadataResolver.getId("permit2"), metadata: metadata});
 
         // If the metadata contained permit data, use it to set the allowance.
         if (exists) {
@@ -986,7 +995,7 @@ contract JBSwapTerminal is
         }
 
         // If there's sufficient approval, transfer normally.
-        if (IERC20(token).allowance(address(from), address(this)) >= amount) {
+        if (IERC20(token).allowance({owner: address(from), spender: address(this)}) >= amount) {
             return IERC20(token).safeTransferFrom(from, to, amount);
         }
 

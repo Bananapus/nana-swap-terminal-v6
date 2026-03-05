@@ -126,7 +126,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         if (terminal == IJBTerminal(address(0))) terminal = defaultTerminal;
 
         // Get the accounting context for the token.
-        return terminal.accountingContextForTokenOf(projectId, token);
+        return terminal.accountingContextForTokenOf({projectId: projectId, token: token});
     }
 
     /// @notice Return all the accounting contexts for a specified project ID.
@@ -235,7 +235,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         amount = _acceptFundsFor({token: token, amount: amount, metadata: metadata});
 
         // Trigger any pre-transfer logic.
-        uint256 payValue = _beforeTransferFor(address(terminal), token, amount);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: token, amount: amount});
 
         // Add to the primary terminal's balance in the resulting token, forwarding along the beneficiary and other
         // arguments.
@@ -350,7 +350,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
 
         // Trigger any pre-transfer logic.
         // Keep a reference to the amount that'll be paid as a `msg.value`.
-        uint256 payValue = _beforeTransferFor(address(terminal), token, amount);
+        uint256 payValue = _beforeTransferFor({to: address(terminal), token: token, amount: amount});
 
         // Forward the payment to the terminal.
         return terminal.pay{value: payValue}({
@@ -420,7 +420,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
 
         // Unpack the `JBSingleAllowance` to use given by the frontend.
         (bool exists, bytes memory parsedMetadata) =
-            JBMetadataResolver.getDataFor(JBMetadataResolver.getId("permit2"), metadata);
+            JBMetadataResolver.getDataFor({id: JBMetadataResolver.getId("permit2"), metadata: metadata});
 
         // If the metadata contained permit data, use it to set the allowance.
         if (exists) {
@@ -487,7 +487,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         }
 
         // If there's sufficient approval, transfer normally.
-        if (IERC20(token).allowance(address(from), address(this)) >= amount) {
+        if (IERC20(token).allowance({owner: address(from), spender: address(this)}) >= amount) {
             return IERC20(token).safeTransferFrom(from, to, amount);
         }
 
