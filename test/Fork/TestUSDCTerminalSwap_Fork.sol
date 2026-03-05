@@ -48,7 +48,7 @@ contract TestUSDCTerminalSwap_Fork is Test {
             return;
         }
         // Fork base sepolia.
-        vm.createSelectFork("https://base.gateway.tenderly.co", 33_850_552);
+        vm.createSelectFork(vm.rpcUrl("base"), 33_850_552);
 
         // Fetch the latest core deployments on this network.
         core = CoreDeploymentLib.getDeployment(
