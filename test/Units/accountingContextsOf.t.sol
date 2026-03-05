@@ -23,8 +23,7 @@ contract JBSwapTerminalaccountingContextsOf is UnitFixture {
         pool = IUniswapV3Pool(makeAddr("pool"));
 
         swapTerminal = JBSwapTerminal(
-            payable(
-                new ForTest_SwapTerminal(
+            payable(new ForTest_SwapTerminal(
                     mockJBProjects,
                     mockJBPermissions,
                     mockJBDirectory,
@@ -33,8 +32,7 @@ contract JBSwapTerminalaccountingContextsOf is UnitFixture {
                     mockWETH,
                     mockTokenOut,
                     mockUniswapFactory
-                )
-            )
+                ))
         );
     }
 
@@ -84,7 +82,7 @@ contract JBSwapTerminalaccountingContextsOf is UnitFixture {
                 token: address(bytes20(keccak256(abi.encodePacked(i, "project")))), // same token
                 decimals: uint8(i),
                 currency: uint32(bytes4(keccak256(abi.encodePacked(i, "overlap")))) // different currency, to
-                    // differentiate them
+                // differentiate them
             });
         }
 
@@ -92,9 +90,8 @@ contract JBSwapTerminalaccountingContextsOf is UnitFixture {
         ForTest_SwapTerminal(payable(swapTerminal)).forTest_forceAddAccountingContexts(projectId, projectContexts);
 
         // Generic contexts
-        ForTest_SwapTerminal(payable(swapTerminal)).forTest_forceAddAccountingContexts(
-            swapTerminal.DEFAULT_PROJECT_ID(), genericContexts
-        );
+        ForTest_SwapTerminal(payable(swapTerminal))
+            .forTest_forceAddAccountingContexts(swapTerminal.DEFAULT_PROJECT_ID(), genericContexts);
 
         // it should return the accounting contexts of the project
         assertIsIncluded(projectContexts, swapTerminal.accountingContextsOf(projectId));
@@ -124,9 +121,8 @@ contract JBSwapTerminalaccountingContextsOf is UnitFixture {
             });
         }
 
-        ForTest_SwapTerminal(payable(swapTerminal)).forTest_forceAddAccountingContexts(
-            swapTerminal.DEFAULT_PROJECT_ID(), genericContexts
-        );
+        ForTest_SwapTerminal(payable(swapTerminal))
+            .forTest_forceAddAccountingContexts(swapTerminal.DEFAULT_PROJECT_ID(), genericContexts);
 
         // it should return the generic accounting contexts
         assertIsIncluded(genericContexts, swapTerminal.accountingContextsOf(projectId));

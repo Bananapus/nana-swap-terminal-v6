@@ -13,8 +13,7 @@ contract JBSwapTerminaltwapParamsOf is UnitFixture {
         pool = IUniswapV3Pool(makeAddr("pool"));
 
         swapTerminal = JBSwapTerminal(
-            payable(
-                new ForTest_SwapTerminal(
+            payable(new ForTest_SwapTerminal(
                     mockJBProjects,
                     mockJBPermissions,
                     mockJBDirectory,
@@ -23,8 +22,7 @@ contract JBSwapTerminaltwapParamsOf is UnitFixture {
                     mockWETH,
                     mockTokenOut,
                     mockUniswapFactory
-                )
-            )
+                ))
         );
     }
 
@@ -42,9 +40,8 @@ contract JBSwapTerminaltwapParamsOf is UnitFixture {
     }
 
     function test_WhenThereAreDefaultParamForThePool(uint192 window) external whenThereAreNoTwapParamsForTheProject {
-        ForTest_SwapTerminal(payable(swapTerminal)).forTest_forceAddTwapWindow(
-            swapTerminal.DEFAULT_PROJECT_ID(), pool, window
-        );
+        ForTest_SwapTerminal(payable(swapTerminal))
+            .forTest_forceAddTwapWindow(swapTerminal.DEFAULT_PROJECT_ID(), pool, window);
 
         // it should return the default params
         uint256 secondsAgo = swapTerminal.twapWindowOf(projectId, pool);

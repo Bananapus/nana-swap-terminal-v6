@@ -280,9 +280,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     function lockTerminalFor(uint256 projectId) external {
         // Enforce permissions.
         _requirePermissionFrom({
-            account: PROJECTS.ownerOf(projectId),
-            projectId: projectId,
-            permissionId: JBPermissionIds.SET_SWAP_TERMINAL
+            account: PROJECTS.ownerOf(projectId), projectId: projectId, permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
 
         // L-27: Require a non-zero terminal before locking. Either the project has one set, or the default exists.
@@ -391,9 +389,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
 
         // Enforce permissions.
         _requirePermissionFrom({
-            account: PROJECTS.ownerOf(projectId),
-            projectId: projectId,
-            permissionId: JBPermissionIds.SET_SWAP_TERMINAL
+            account: PROJECTS.ownerOf(projectId), projectId: projectId, permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
 
         // Set the terminal.
@@ -435,10 +431,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
             // Keep a reference to the permit rules.
             IAllowanceTransfer.PermitSingle memory permitSingle = IAllowanceTransfer.PermitSingle({
                 details: IAllowanceTransfer.PermitDetails({
-                    token: token,
-                    amount: allowance.amount,
-                    expiration: allowance.expiration,
-                    nonce: allowance.nonce
+                    token: token, amount: allowance.amount, expiration: allowance.expiration, nonce: allowance.nonce
                 }),
                 spender: address(this),
                 sigDeadline: allowance.sigDeadline

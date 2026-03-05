@@ -140,9 +140,7 @@ contract OrderSizeStress is PoolTestHelper {
         );
 
         // 4. Mock projects.ownerOf.
-        vm.mockCall(
-            address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner)
-        );
+        vm.mockCall(address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner));
 
         // 5. Mock the directory: primaryTerminalOf(PROJECT_ID, tokenB) => nextTerminal.
         vm.mockCall(
@@ -266,20 +264,19 @@ contract OrderSizeStress is PoolTestHelper {
                     assertGt(
                         output,
                         0,
-                        string.concat("depth=", depthLabel, " size=", sizeLabels[s], ": output should be > 0 if swap succeeded")
+                        string.concat(
+                            "depth=", depthLabel, " size=", sizeLabels[s], ": output should be > 0 if swap succeeded"
+                        )
                     );
                 }
                 // Revert is expected for oversized orders — pass silently.
             } else {
                 // When order size <= pool depth, the swap should succeed.
                 assertFalse(
-                    reverted,
-                    string.concat("depth=", depthLabel, " size=", sizeLabels[s], ": should not revert")
+                    reverted, string.concat("depth=", depthLabel, " size=", sizeLabels[s], ": should not revert")
                 );
                 assertGt(
-                    output,
-                    0,
-                    string.concat("depth=", depthLabel, " size=", sizeLabels[s], ": output should be > 0")
+                    output, 0, string.concat("depth=", depthLabel, " size=", sizeLabels[s], ": output should be > 0")
                 );
                 // For a 1:1 pool, output should be at least 10% of input for sub-depth orders.
                 assertGe(
@@ -306,8 +303,8 @@ contract OrderSizeStress is PoolTestHelper {
 
     /// @notice Medium pool (1K ETH depth) x 5 order sizes.
     function test_mediumPoolDepth() public {
-        _seedLiquidity(1_000e18);
-        _runSizesForDepth(1_000e18, "medium(1K)");
+        _seedLiquidity(1000e18);
+        _runSizesForDepth(1000e18, "medium(1K)");
     }
 
     /// @notice Deep pool (100K ETH depth) x 5 order sizes.

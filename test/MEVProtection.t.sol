@@ -163,9 +163,7 @@ contract MEVProtection is PoolTestHelper {
         );
 
         // 7. Mock projects.ownerOf.
-        vm.mockCall(
-            address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner)
-        );
+        vm.mockCall(address(mockProjects), abi.encodeCall(IERC721.ownerOf, (PROJECT_ID)), abi.encode(projectOwner));
 
         // 8. Configure the default pool for this project.
         vm.prank(projectOwner);
@@ -245,7 +243,7 @@ contract MEVProtection is PoolTestHelper {
     ///         then victim pays with original quote. Should revert or output drops significantly.
     function test_frontrunProtection() public {
         uint256 victimAmount = 100e18;
-        uint256 frontrunAmount = 2_000e18; // 20% of pool
+        uint256 frontrunAmount = 2000e18; // 20% of pool
 
         // Step 1: Victim gets a quote before frontrun.
         uint256 expectedOutPreFrontrun = _quoteAmountOut(victimAmount);
@@ -275,7 +273,7 @@ contract MEVProtection is PoolTestHelper {
     ///         Verify that the user quote (dynamic limit) mitigates the loss.
     function test_sandwichQuantified() public {
         uint256 victimAmount = 100e18;
-        uint256 frontrunAmount = 1_000e18; // 10% of pool
+        uint256 frontrunAmount = 1000e18; // 10% of pool
 
         // Step 1: Get the clean output (no frontrun).
         uint256 cleanOutput = _quoteAmountOut(victimAmount);

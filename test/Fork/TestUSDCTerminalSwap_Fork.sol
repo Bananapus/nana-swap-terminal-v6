@@ -127,13 +127,14 @@ contract TestUSDCTerminalSwap_Fork is Test {
             JBTerminalConfig({terminal: core.terminal, accountingContextsToAccept: _tokensToAccept});
 
         _projectId = uint64(
-            core.controller.launchProjectFor({
-                owner: address(manager),
-                projectUri: "myIPFSHash",
-                rulesetConfigurations: _rulesetConfig,
-                terminalConfigurations: _terminalConfigurations,
-                memo: ""
-            })
+            core.controller
+                .launchProjectFor({
+                    owner: address(manager),
+                    projectUri: "myIPFSHash",
+                    rulesetConfigurations: _rulesetConfig,
+                    terminalConfigurations: _terminalConfigurations,
+                    memo: ""
+                })
         );
     }
 

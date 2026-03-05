@@ -135,7 +135,7 @@ contract TestSwapTerminal_Fork is Test {
 
     /// @notice Test paying a swap terminal in UNI to contribute to JuiceboxDAO project (in the eth terminal), using
     /// metadata
-    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
+    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
     function testPayUniSwapEthPayEth(uint256 _amountIn) external {
         _amountIn = bound(_amountIn, 1 ether, 10 ether);
 
@@ -196,7 +196,7 @@ contract TestSwapTerminal_Fork is Test {
 
     /// @notice Test paying a swap terminal in UNI to contribute to JuiceboxDAO project (in the eth terminal), using
     /// a twap
-    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
+    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
     function testPayUniSwapEthPayEthTwap(uint256 _amountIn) external {
         _amountIn = bound(_amountIn, 0.01 ether, 1 ether);
 
@@ -253,7 +253,7 @@ contract TestSwapTerminal_Fork is Test {
 
     /// @notice Test paying a swap terminal in UNI to contribute to JuiceboxDAO project (in the eth terminal), using
     /// a twap
-    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
+    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
     function testPayUniSwapEthPayEthTwapRevert() external {
         uint256 _amountIn = 10 ether; // hyper inflate the price to create a high slippage
 
@@ -351,7 +351,7 @@ contract TestSwapTerminal_Fork is Test {
 
     /// @notice Test paying a swap terminal in UNI to contribute to JuiceboxDAO project (in the eth terminal), using
     /// metadata
-    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
+    /// @dev    Quote at the forked block 5022528 : 1 UNI = 1.33649 ETH with max slippage suggested (uni sdk): 0.5%
     function testAddToBalanceOfUniSwapEthPayEth(uint256 _amountIn) external {
         _amountIn = bound(_amountIn, 1 ether, 10 ether);
 

@@ -12,7 +12,12 @@ import {IUniswapV3Factory} from "@uniswap/v3-core/contracts/interfaces/IUniswapV
 import {Script} from "forge-std/Script.sol";
 
 import {
-    IJBSwapTerminal, JBSwapTerminal, IUniswapV3Pool, IPermit2, IWETH9, IJBTerminal
+    IJBSwapTerminal,
+    JBSwapTerminal,
+    IUniswapV3Pool,
+    IPermit2,
+    IWETH9,
+    IJBTerminal
 } from "./../src/JBSwapTerminal.sol";
 
 import {JBSwapTerminalRegistry} from "./../src/JBSwapTerminalRegistry.sol";
