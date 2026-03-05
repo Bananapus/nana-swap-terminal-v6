@@ -10,6 +10,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "postinstall": "cd node_modules/@bananapus/core-v6/test/helpers && sed -i.bak 's|from \"src/|from \"../../src/|g' JBTest.sol && sed -i.bak 's|import \"lib/forge-std/src/Test.sol\"|import \"forge-std/Test.sol\"|' JBTest.sol && rm -f JBTest.sol.bak",
     "test": "forge test",
     "test:fork": "FOUNDRY_PROFILE=CI forge test",
     "coverage": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
@@ -17,7 +18,7 @@
     "deploy:testnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
     "deploy:mainnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks mainnets",
     "deploy:testnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks testnets",
-"configure:mainnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks mainnets",
+    "configure:mainnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks mainnets",
     "configure:testnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks testnets",
     "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-swap-terminal-v6'"
   },
