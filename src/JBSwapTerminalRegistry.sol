@@ -273,7 +273,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     }
 
     /// @notice Lock a terminal for a project.
-    /// @dev Only the project's owner or an address with the `JBPermissionIds.ADD_SWAP_TERMINAL_POOL` permission from
+    /// @dev Only the project's owner or an address with the `JBPermissionIds.SET_SWAP_TERMINAL` permission from
     /// the
     /// owner can lock a terminal for a project.
     /// @param projectId The ID of the project to lock the terminal for.
@@ -282,7 +282,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         _requirePermissionFrom({
             account: PROJECTS.ownerOf(projectId),
             projectId: projectId,
-            permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_POOL
+            permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
 
         // L-27: Require a non-zero terminal before locking. Either the project has one set, or the default exists.
@@ -378,7 +378,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
     }
 
     /// @notice Set the terminal for a project.
-    /// @dev Only the project's owner or an address with the `JBPermissionIds.ADD_SWAP_TERMINAL_POOL` permission from
+    /// @dev Only the project's owner or an address with the `JBPermissionIds.SET_SWAP_TERMINAL` permission from
     /// the
     /// owner can set the terminal for a project.
     /// @param projectId The ID of the project to set the terminal for.
@@ -393,7 +393,7 @@ contract JBSwapTerminalRegistry is IJBSwapTerminalRegistry, JBPermissioned, Owna
         _requirePermissionFrom({
             account: PROJECTS.ownerOf(projectId),
             projectId: projectId,
-            permissionId: JBPermissionIds.ADD_SWAP_TERMINAL_POOL
+            permissionId: JBPermissionIds.SET_SWAP_TERMINAL
         });
 
         // Set the terminal.
