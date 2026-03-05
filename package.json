@@ -16,10 +16,6 @@
     "coverage": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
     "deploy:mainnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks mainnets",
     "deploy:testnets": "source ./.env && npx sphinx propose ./script/Deploy.s.sol --networks testnets",
-    "deploy:mainnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks mainnets",
-    "deploy:testnets:usdc": "source ./.env && npx sphinx propose ./script/DeployUSDC.s.sol --networks testnets",
-    "configure:mainnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks mainnets",
-    "configure:testnets": "source ./.env && npx sphinx propose ./script/ConfigurePairs.s.sol --networks testnets",
     "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-swap-terminal-v6'"
   },
   "dependencies": {
