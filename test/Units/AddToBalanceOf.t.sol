@@ -518,6 +518,9 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
 
         uint32 secondsAgo = uint32(swapTerminal.MIN_TWAP_WINDOW());
 
+        // Ensure block.timestamp > secondsAgo to avoid underflow in observations mock.
+        vm.warp(secondsAgo + 1);
+
         // it should use the default pool
         // it should take the other pool token as tokenOut
         _addDefaultPoolAndParams(secondsAgo);
@@ -641,6 +644,9 @@ contract JBSwapTerminaladdToBalanceOf is UnitFixture {
         bytes memory quoteMetadata = "";
 
         uint32 secondsAgo = uint32(swapTerminal.MIN_TWAP_WINDOW());
+
+        // Ensure block.timestamp > secondsAgo to avoid underflow in observations mock.
+        vm.warp(secondsAgo + 1);
 
         // it should use the default pool
         _addDefaultPoolAndParams(secondsAgo);
