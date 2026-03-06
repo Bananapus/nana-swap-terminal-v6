@@ -10,7 +10,6 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "postinstall": "cd node_modules/@bananapus/core-v6/test/helpers && sed -i.bak 's|from \"src/|from \"../../src/|g' JBTest.sol && sed -i.bak 's|import \"lib/forge-std/src/Test.sol\"|import \"forge-std/Test.sol\"|' JBTest.sol && rm -f JBTest.sol.bak",
     "test": "forge test",
     "test:fork": "FOUNDRY_PROFILE=CI forge test",
     "coverage": "forge coverage --match-path \"./src/*.sol\" --report lcov --report summary",
