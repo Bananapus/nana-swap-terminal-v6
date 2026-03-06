@@ -215,6 +215,7 @@ contract JBSwapTerminal is
     )
         external
         view
+        virtual
         override
         returns (JBAccountingContext memory context)
     {
@@ -403,6 +404,7 @@ contract JBSwapTerminal is
     )
         internal
         view
+        virtual
         returns (uint256 minAmountOut, IUniswapV3Pool pool)
     {
         // If there is no quote, check for this project's default pool for the token and get a quote based on
@@ -764,7 +766,7 @@ contract JBSwapTerminal is
     /// @param amount0Delta The amount of token 0 being used for the swap.
     /// @param amount1Delta The amount of token 1 being used for the swap.
     /// @param data Data passed in by the swap operation.
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
+    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external virtual override {
         // Unpack the data from the original swap config (forwarded through `_swap(...)`).
         (uint256 projectId, address tokenIn) = abi.decode(data, (uint256, address));
 
